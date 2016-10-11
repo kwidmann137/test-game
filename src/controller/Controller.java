@@ -54,4 +54,8 @@ public class Controller {
 			e.printStackTrace();
 		}
 	}
+	
+	public void stopGame(){
+		keepRunning = false;
+	}
 }

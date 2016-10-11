@@ -60,6 +60,10 @@ public class Window extends JFrame{
 
 		@Override
 		public void keyPressed(KeyEvent e) {
+//			If key pressed equals say ESC, then stop game
+//			if( e.getKeyCode() == ){
+//				
+//			}
 			controller.updateCircle(e.getKeyCode());
 		}
 
