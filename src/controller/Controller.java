@@ -1,61 +1,93 @@
 package controller;
 
-import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.List;
+import model.*;
 
 import javax.swing.SwingUtilities;
 
-import model.*;
 import view.Window;;
 
 public class Controller {
 
 	private static Window window;
-	private static boolean keepRunning = true;
-	private static ArrayList<Entity> allEntities = new ArrayList<Entity>();
-	private double secPerUpdate = 1/30;
-//	private double previous = getTime();
-//	double steps = 0.0;
+	private static int displayWidth, displayHeight;
+	private static List<KeyEvent> inputQue;
+	private static Keyboard keys;
+	private static long loopStartTime;
+	private static Level currentLevel;
 	
-	public static void main(String[] args) throws InterruptedException {
-		createCircle();
+	public static void main(String[] args) throws InterruptedException, InvocationTargetException {
 		initWindow();
 		
-		//Game Loop
-		while(keepRunning){
-			window.renderGame();
+		//main loop
+		while(true){
+			loopStartTime = System.nanoTime();
+			
+			//Read
+			Read();
+			
+			//Eval
+			Eval();
+			
+			//Print
+			Print();
+			
+			while((System.nanoTime() - loopStartTime) < ( (1000*1000*1000)/60) ){
+				Thread.sleep(1);
+			}
 		}
 	}
 	
-	public ArrayList<Entity> getEntities(){
-		return allEntities;
-	}
-	
-	public void updateCircle(int e){
-		for(Entity temp : allEntities){
-			temp.updatePosition(e);
-		}
-	}
-	
-	public static void createCircle(){
-		allEntities.add(new Circle(280, 280, 40, Color.RED));
-	}
-	
-	public static void initWindow(){
+	public static void initWindow() throws InvocationTargetException, InterruptedException{
+		//Initialize
+		inputQue = new ArrayList<KeyEvent>();
+		keys = new Keyboard();
+		displayWidth = 800;
+		displayHeight = 600;
+		
+		
+		
 		try {
-			SwingUtilities.invokeAndWait(new Runnable(){
-				public void run(){
-					window = new Window("Moving Circle");
-				}
-			});
-		} catch (InvocationTargetException | InterruptedException e) {
+			currentLevel = new Level();
+		} catch (IOException e) {
 			e.printStackTrace();
+			System.exit(0);
 		}
+		
+		SwingUtilities.invokeAndWait(new Runnable(){
+			public void run(){
+				window = new Window("Lunar Strike", displayWidth, displayHeight);
+			}
+		});
 	}
 	
-	public void stopGame(){
-		keepRunning = false;
+	public static void Read() throws InvocationTargetException, InterruptedException{
+		SwingUtilities.invokeAndWait(new Runnable(){
+			public void run(){
+				inputQue = window.getInputBuffer();
+			}
+		});
+	}
+	
+	public static void Eval(){
+		keys.update(inputQue);
+		if(keys.escPressed){ System.exit(0);}
+		currentLevel.update(keys);
+	}
+	
+	public static void sync(){
+		
+	}
+	
+	public static void Print(){
+		SwingUtilities.invokeLater(new Runnable(){
+			public void run(){
+				window.render(currentLevel, currentLevel.entities);
+			}
+		});
 	}
 }
